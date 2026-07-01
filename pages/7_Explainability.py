@@ -59,7 +59,13 @@ with tab2:
                     engine.fit_explainer(X_sample)
                     
                     fig, ax = plt.subplots(figsize=(10, 6))
-                    shap.summary_plot(engine.shap_values, X_sample, show=False)
+                    
+                    # Handle Explanation objects and multi-class
+                    vals = engine.shap_values.values if hasattr(engine.shap_values, "values") else engine.shap_values
+                    if len(vals.shape) == 3:
+                        vals = vals[:, :, 1]
+                        
+                    shap.summary_plot(vals, engine.X_final, show=False)
                     # Adjust colors for dark theme
                     fig.patch.set_facecolor('#0E1117')
                     ax.set_facecolor('#0E1117')
@@ -95,8 +101,10 @@ with tab3:
                     
                     fig, ax = plt.subplots(figsize=(8, 5))
                     # Handle multi-class vs binary shap values
-                    shap_vals = engine.shap_values[1] if isinstance(engine.shap_values, list) else engine.shap_values
-                    shap.dependence_plot(feat_to_plot, shap_vals, X_sample, show=False, ax=ax)
+                    vals = engine.shap_values.values if hasattr(engine.shap_values, "values") else engine.shap_values
+                    if len(vals.shape) == 3:
+                        vals = vals[:, :, 1]
+                    shap.dependence_plot(feat_to_plot, vals, engine.X_final, show=False, ax=ax)
                     
                     fig.patch.set_facecolor('#0E1117')
                     ax.set_facecolor('#0E1117')
