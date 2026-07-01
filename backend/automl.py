@@ -11,6 +11,7 @@ This is the controller of the complete ML pipeline.
 
 import pandas as pd
 import numpy as np
+from pandas.api.types import is_integer_dtype, is_float_dtype
 
 from backend.classification import ClassificationTrainer
 from backend.regression import RegressionTrainer
@@ -74,7 +75,7 @@ class AutoML:
 
         # Numeric
 
-        elif np.issubdtype(y.dtype, np.integer):
+        elif is_integer_dtype(y):
 
             # Binary
 
@@ -92,7 +93,7 @@ class AutoML:
 
                 self.problem_type = "regression"
 
-        elif np.issubdtype(y.dtype, np.floating):
+        elif is_float_dtype(y):
 
             self.problem_type = "regression"
 
