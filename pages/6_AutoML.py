@@ -73,8 +73,8 @@ current_status = status_data.get("status", "idle")
 
 st.markdown(f"**Target Variable:** `{target_col}`")
 
-if current_status == "idle" or current_status == "error":
-    if current_status == "error":
+if current_status in ["idle", "error", "running"]:
+    if current_status in ["error", "running"]:
         st.error(f"Previous training failed: {status_data.get('error_message')}")
         
     st.info("Click the button below to initiate the autonomous machine learning pipeline. The process will run completely in the background, allowing you to freely navigate to the Dashboard or EDA pages while it crunches the data!")
@@ -100,29 +100,29 @@ if current_status == "idle" or current_status == "error":
     if not selected_models:
         st.warning("Please select at least one model to train.")
     else:
-        if st.button("Start Background Training", type="primary"):
-            # Reset state and start thread
-            set_training_status({"status": "running", "current": 0, "total": len(selected_models), "model": "Initializing..."})
+        if st.button("Start Training", type="primary"):
             
-            thread = threading.Thread(target=background_train_task, args=(df, target_col, selected_models))
-            thread.start()
+            st.info("🚀 Training models... Please do not close or navigate away from this page.")
             
-            st.rerun()
-
-elif current_status == "running":
-    st.info("⏳ Models are currently training in the background. You can navigate away from this page and check back later!")
-    
-    current = status_data.get("current", 0)
-    total = status_data.get("total", 1)
-    model_name = status_data.get("model", "Initializing...")
-    
-    fraction = min(current / max(total, 1), 1.0)
-    st.progress(fraction)
-    st.write(f"Training Model {current + 1} of {total}: **{model_name}**")
-    
-    # Auto-refresh loop to poll the background JSON state file
-    time.sleep(2)
-    st.rerun()
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            def update_progress_sync(current, total, current_model):
+                fraction = min(current / max(total, 1), 1.0)
+                progress_bar.progress(fraction)
+                status_text.write(f"Training Model {current + 1} of {total}: **{current_model}**")
+            
+            try:
+                with st.spinner("Crunching data..."):
+                    automl = AutoML()
+                    results = automl.train(df, target=target_col, progress_callback=update_progress_sync, selected_models=selected_models)
+                set_training_status({"status": "completed"})
+                st.success("Training Complete!")
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                set_training_status({"status": "error", "error_message": str(e)})
+                st.error(f"Training failed: {e}")
 
 elif current_status == "completed":
     st.success("Training Complete!")

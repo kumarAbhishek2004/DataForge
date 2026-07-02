@@ -62,7 +62,9 @@ with tab2:
                     
                     # Handle Explanation objects and multi-class
                     vals = engine.shap_values.values if hasattr(engine.shap_values, "values") else engine.shap_values
-                    if len(vals.shape) == 3:
+                    if isinstance(vals, list):
+                        vals = vals[1] if len(vals) > 1 else vals[0]
+                    elif len(vals.shape) == 3:
                         vals = vals[:, :, 1]
                         
                     shap.summary_plot(vals, engine.X_final, show=False)
@@ -84,10 +86,18 @@ with tab3:
     st.write("Understand the interaction effect between a specific feature and the target variable.")
     
     if 'raw_data' in st.session_state and pipeline_dict.get('target_column') in st.session_state['raw_data'].columns:
-        features = st.session_state['raw_data'].drop(columns=[pipeline_dict.get('target_column')]).columns.tolist()
-        feat_to_plot = st.selectbox("Select Feature to Analyze", features)
+        df_for_features = st.session_state['raw_data'].drop(columns=[pipeline_dict.get('target_column')])
+        numeric_features = df_for_features.select_dtypes(include=['number']).columns.tolist()
         
-        if st.button("Generate Dependence Plot"):
+        st.write("*(Note: Only numerical features are supported for SHAP Dependence plots.)*")
+        
+        if numeric_features:
+            feat_to_plot = st.selectbox("Select Feature to Analyze", numeric_features)
+        else:
+            st.warning("No numerical features available for dependence plot.")
+            feat_to_plot = None
+            
+        if feat_to_plot and st.button("Generate Dependence Plot"):
             with st.spinner(f"Plotting dependence for {feat_to_plot}..."):
                 from backend.explainability import ExplainabilityEngine
                 df = st.session_state.get('raw_data')
@@ -102,7 +112,9 @@ with tab3:
                     fig, ax = plt.subplots(figsize=(8, 5))
                     # Handle multi-class vs binary shap values
                     vals = engine.shap_values.values if hasattr(engine.shap_values, "values") else engine.shap_values
-                    if len(vals.shape) == 3:
+                    if isinstance(vals, list):
+                        vals = vals[1] if len(vals) > 1 else vals[0]
+                    elif len(vals.shape) == 3:
                         vals = vals[:, :, 1]
                     shap.dependence_plot(feat_to_plot, vals, engine.X_final, show=False, ax=ax)
                     
