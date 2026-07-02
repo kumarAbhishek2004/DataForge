@@ -26,7 +26,7 @@ class ChatbotEngine:
             raise ValueError("Gemini API Key is missing. Please set GEMINI_API_KEY environment variable.")
             
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             google_api_key=self.api_key,
             temperature=0.2
         )

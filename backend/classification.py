@@ -75,6 +75,10 @@ class ClassificationTrainer(BaseTrainer):
         X = df.drop(columns=[target])
 
         y = df[target]
+        
+        from sklearn.preprocessing import LabelEncoder
+        label_encoder = LabelEncoder()
+        y_encoded = label_encoder.fit_transform(y)
 
         X_processed = preprocessor.fit_transform(X)
 
@@ -85,7 +89,7 @@ class ClassificationTrainer(BaseTrainer):
             columns=feature_names
         )
 
-        processed_df[target] = y.values
+        processed_df[target] = y_encoded
 
         self.preprocessor = preprocessor
 
