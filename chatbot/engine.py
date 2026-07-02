@@ -42,7 +42,7 @@ class ChatbotEngine:
         self.api_key = self.api_key.strip('"').strip("'").strip()
             
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-3-flash",
             google_api_key=self.api_key,
             temperature=0.2
         )
