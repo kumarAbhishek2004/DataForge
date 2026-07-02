@@ -11,6 +11,7 @@ import os
 import pandas as pd
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 try:
     from dotenv import load_dotenv
@@ -68,14 +69,14 @@ class ChatbotEngine:
             """
         )
         
-        chain = prompt | self.llm
+        chain = prompt | self.llm | StrOutputParser()
         
         response = chain.invoke({
             "metadata": metadata,
             "leaderboard": leaderboard_df.head(5).to_string(),
             "features": feature_importance_df.head(10).to_string() if not feature_importance_df.empty else "Not available."
         })
-        return response.content
+        return response
 
     def ask_question(self, question, pipeline_dict, dataset_head=None):
         """Answers arbitrary user questions based on the dataset/model context."""
@@ -111,7 +112,7 @@ class ChatbotEngine:
             """
         )
         
-        chain = prompt | self.llm
+        chain = prompt | self.llm | StrOutputParser()
         
         response = chain.invoke({"context": context, "question": question})
-        return response.content
+        return response
