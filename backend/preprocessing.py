@@ -106,12 +106,9 @@ class DataPreprocessor:
 
                     "encoder",
 
-                    OneHotEncoder(
-
-                        handle_unknown="ignore",
-
-                        sparse_output=False
-
+                    OrdinalEncoder(
+                        handle_unknown="use_encoded_value",
+                        unknown_value=-1
                     )
 
                 )
