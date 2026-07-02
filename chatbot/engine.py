@@ -21,9 +21,25 @@ except ImportError:
 class ChatbotEngine:
 
     def __init__(self, api_key=None):
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self.api_key = api_key
+        
         if not self.api_key:
-            raise ValueError("Gemini API Key is missing. Please set GEMINI_API_KEY environment variable.")
+            # Try Streamlit Secrets first
+            try:
+                import streamlit as st
+                self.api_key = st.secrets.get("GEMINI_API_KEY")
+            except:
+                pass
+                
+        if not self.api_key:
+            # Fallback to os.environ
+            self.api_key = os.getenv("GEMINI_API_KEY")
+            
+        if not self.api_key:
+            raise ValueError("Gemini API Key is missing. Please set GEMINI_API_KEY in Streamlit secrets or environment variables.")
+            
+        # Strip accidental quotes from TOML copy-pasting
+        self.api_key = self.api_key.strip('"').strip("'").strip()
             
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-1.5-flash",
